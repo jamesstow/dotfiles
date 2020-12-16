@@ -1,0 +1,13 @@
+:set shiftwidth=2
+:set autoindent
+:set smartindent
+:set number
+:map <ESC>[H <Home>
+:map <ESC>[F <End>
+:imap <ESC>[H <C-O><Home>
+:imap <ESC>[F <C-O><End>
+:cmap <ESC>[H <Home>
+:cmap <ESC>[F <End>
+
+Plug 'rbgrouleff/bclose.vim'
+Plug 'OmniSharp/omnisharp-vim'

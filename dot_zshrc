@@ -1,0 +1,243 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+autoload -Uz compinit
+compinit
+
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+export VISUAL=nvim;
+export EDITOR=nvim;
+setopt SHARE_HISTORY
+
+bindkey  '^[[H'   beginning-of-line
+bindkey  '^[[F'   end-of-line
+bindkey  '^[[3~'  delete-char
+bindkey  '^[[1;5D' backward-word
+bindkey  '^[[1;5C' forward-word
+# bindkey -s '^ ' 
+
+plugins=(
+        archlinux
+        git
+        dotnet
+        aws
+        docker
+        docker-compose
+        helm
+        kubectl
+        tmux
+        vscode
+)
+
+# general
+alias r="rofi -show combi"
+alias vim="nvim"
+alias v="vim"
+alias sv="sudo vim"
+alias aliases="vim ~/.zshrc && source ~/.zshrc"
+alias vimrc="vim ~/.vimrc"
+alias hosts="sudo vim /etc/hosts"
+alias json="echo '' > tmp && vim tmp && cat tmp | jq && rm tmp"
+alias l="ls -l"
+alias ll="ls -la"
+alias c="clear"
+alias sshconf="vim ~/.ssh/config"
+alias howmuch="find -regextype posix-extended -regex '.*\.(ts|cs|js|Dockerfile|yml|yaml|sh|sql|md)' | grep -v 'node_modules' | grep -v 'obj' | xargs wc -l"
+alias ups="sudo pwrstat -status"
+alias rr="ranger"
+alias copy="xclip -sel clip"
+alias psyu="sudo pacman -Syu"
+alias update="psyu"
+alias install="sudo pacman -S"
+alias ports="sudo netstat -plnt"
+alias newsh="sudo su - $(whoami)"
+alias regroup="sudo source /etc/profile"
+alias secrets="vim ~/.secrets"
+alias mkcd="_mkcd"
+
+function _mkcd(){
+	if [ -z $1 ]; then\
+		echo -e "no directory name provided"
+		exit 1
+	fi
+
+	mkdir $1
+	cd $1
+}
+
+alias dev="_env dev"
+alias stg="_env stg"
+alias staging="_env staging"
+alias live="_env live"
+
+function _env(){
+	branch=$1
+	stack=$1
+	cluster=$1
+
+	case $1 in
+		stg)
+			branch="staging"
+			stack="staging"
+		;;
+		staging)
+			cluster="stg"
+		;;
+	esac;
+
+	echo -e "using branch $branch, stack $stack and cluster $cluster"
+	
+	git checkout $branch
+	pulumi stack select $stack
+	klogin $cluster
+}
+
+# systemd
+alias sen="sudo systemctl enable"
+alias senn="sudo systemctl enable --now"
+alias sdi="sudo systemctl disable"
+alias sdin="sudo systemctl disable --now"
+alias sre="sudo systemctl restart"
+alias sss="sudo systemctl status"
+
+# standup
+alias scrum="cat ~/.standup | tee >(copy)"
+alias standup="scrum"
+alias tasks="vim ~/.standup"
+alias today="tasks"
+alias whatdidido="echo 'Not much, you idle git.'"
+
+# git
+alias g="git"
+alias gc="git commit"
+alias gs="git status"
+alias gd="git diff"
+alias gdc="git diff --cached"
+alias gpl="git pull"
+alias gr="git remote -v"
+alias gpu="git push"
+alias ga="git add"
+alias gb="git branch"
+alias gbr="git branch --remote"
+alias gco="git checkout"
+
+# pulumi
+alias p="pulumi"
+alias pso="pulumi stack output --show-secrets"
+alias pse="pulumi stack export > tmp.json && code tmp.json"
+alias psi="pulumi stack import < tmp.json"
+
+# aws
+alias awscreds="vim ~/.aws/credentials"
+
+# k8s
+
+alias klist="aws eks list-clusters"
+alias kubeconfig="vim ~/.kube/config"
+
+function _klogin(){
+	sed -i "s/current-context: .*$/current-context: $1/" ~/.kube/config
+}
+
+function _kn(){
+	kubectl config set-context --current --namespace=$1
+}
+
+alias klogin="_klogin"
+alias kn="_kn"
+alias k="kubectl"
+alias ka="kubectl apply -f"
+alias kdl="kubectl delete -f"
+alias kg="kubectl get"
+alias kp="kubectl proxy"
+alias kpf="kubectl port-forward"
+alias kd="kubectl describe"
+alias kl="kubectl logs"
+alias ksec="kubectl get secrets"
+alias kr="kubectl api-resources"
+
+function _kbash(){
+	if [ -z $1 ]; then
+		echo -e "ERROR: no pod provided"
+	else
+		kubectl exec --stdin --tty $1 -- /bin/bash
+	fi
+}
+
+alias kbash="_kbash"
+
+function _ks(){
+	if [ -z $1 ]; then 
+		kubectl get secrets
+	else	
+	 	secrets=$(kubectl get secrets/$1 -o json | jq ".data")
+		if [ ! -z $2 ]; then
+			echo $secrets | jq ".[\"$2\"]" | sed "s/\"//g"  | base64 --decode
+		else
+			echo $secrets | jq
+		fi
+	fi
+}
+
+alias ks="_ks"
+
+alias kga="kubectl get all"
+alias kgaa="kubectl get all -A"
+alias kgm="kubectl get configmaps"
+alias kgma="kubectl get configmaps -A"
+alias kgp="kubectl get pods"
+alias kgpa="kubectl get pods -A"
+alias kgs="kubectl get services"
+alias kgsa="kubectl get services -A"
+alias kgc="kubectl get certificates"
+alias kgca="kubectl get certificates -A"
+alias kgi="kubectl get ingress"
+alias kgia="kubectl get ingress -A"
+alias kgd="kubectl get deployments"
+alias kgda="kubectl get deployments -A"
+
+alias kdm="kubectl describe configmaps"
+alias kdp="kubectl describe pod"
+alias kds="kubectl describe service"
+alias kdc="kubectl describe certificate"
+alias kdi="kubectl describe ingress"
+alias kdd="kubectl describe deployment"
+
+# helm
+alias hl="helm list"
+alias hr="helm uninstall"
+
+# docker
+alias dps="docker ps"
+
+# docker compose
+alias dc="docker-compose"
+
+# projects
+alias inf="cd ~/projects/infrastructure"
+alias cont="cd ~/projects/content-api"
+
+# add Pulumi to thE patH
+export PATH=$PATH:$HOME/.pulumi/bin
+
+export PATH=$PATH:$HOME/bin
+
+export XDG_USER_CONFIG_DIR=$HOME/.config
+
+export NODE_PATH=$(npm root --quiet -g) # so i can reference global node modules
+
+source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+[[ /usr/bin/kubectl ]] && source <(kubectl completion zsh)
